@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+  pre_build:
+    commands:
+      - echo Checking AWS CLI version...
+      - aws --version
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region ap-south-1)
+  build:
+    commands:
+      - echo Building Docker image...
+      - docker build -t my-django-app .
+  post_build:
+    commands:
+      - echo Pushing Docker image to Amazon ECR...
+      - docker tag my-django-app:latest 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+      - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+
+artifacts:
+  files: []
