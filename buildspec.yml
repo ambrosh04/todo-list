@@ -12,6 +12,8 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 905418111557.dkr.ecr.ap-south-1.amazonaws.com
+      - docker run --name my-django-container -p 8000:8000 -d 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+
 
   build:
     commands:
@@ -25,4 +27,4 @@ phases:
       - echo Pushing Docker image to Amazon ECR...
       - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
       - echo Running Docker container...
-      - docker run --name my-django-container -p 8000:8000 -d 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+      
