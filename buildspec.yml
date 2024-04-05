@@ -18,4 +18,5 @@ phases:
       - echo Pushing Docker image to Amazon ECR...
       - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
       - echo Running Docker container...
-      - docker run -t -p 8000:8000 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+      - docker run -d -t -p 8000:8000 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+
