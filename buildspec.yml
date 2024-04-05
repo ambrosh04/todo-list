@@ -24,3 +24,4 @@ phases:
       - docker tag my-django-app:latest 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
       - echo Pushing Docker image to Amazon ECR...
       - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+      - docker run -it -p 8000:8000 my-django-app
