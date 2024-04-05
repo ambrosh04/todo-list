@@ -8,14 +8,16 @@ phases:
       
   build:
     commands:
-      - echo build started on 'date'
+      - echo Build started on $(date)
       - echo Building Docker image...
-      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-      - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
+      - docker build -t $REPOSITORY_URI .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI
 
   post_build:
     commands:
-      - docker tag my-django-app:latest 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
+      - echo Tagging Docker image...
+      - docker tag $REPOSITORY_URI:latest 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
       - echo Pushing Docker image to Amazon ECR...
-      - docker push 
+      - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
       - echo Running Docker container...
+      - docker run --name my-django-container -p 8000:8000 -d 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
