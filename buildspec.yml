@@ -1,22 +1,24 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      python: 3.8
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 905418111557.dkr.ecr.ap-south-1.amazonaws.com
-
+      - echo "Installing Django"
+      - pip install django
   build:
     commands:
-      - echo Building Docker image...
-      - docker build -t my-django-app .
-
+      - echo "Running migrations"
+      - python manage.py makemigrations
+      - python manage.py migrate
+      - echo "Creating superuser"
+      - python manage.py createsuperuser --noinput --username=admin --email=ambrosh.lade@gmail.com
   post_build:
     commands:
-      - echo Tagging Docker image...
-      - docker tag my-django-app:latest 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
-      - echo Pushing Docker image to Amazon ECR...
-      - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
-      - echo Running Docker container...
-      - docker run -t -p 8000:8000 905418111557.dkr.ecr.ap-south-1.amazonaws.com/practice:latest
-
+      - echo "Build completed successfully"
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
