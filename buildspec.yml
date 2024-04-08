@@ -3,22 +3,22 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.8
+      python: 3.12
+
   pre_build:
     commands:
-      - echo "Installing Django"
-      - pip install django
+      # Install Docker
+      - apt-get update
+      - apt-get install -y docker.io
+
   build:
     commands:
-      - echo "Running migrations"
-      - python manage.py makemigrations
-      - python manage.py migrate
-      - echo "Creating superuser"
-      - python manage.py createsuperuser --noinput --username=admin --email=ambrosh.lade@gmail.com
+      # Build Docker image
+      - docker build -t 905418111557.dkr.ecr.ap-south-1.amazonaws.com/todo-list .
+
   post_build:
     commands:
-      - echo "Build completed successfully"
-artifacts:
-  files:
-    - '**/*'
-  discard-paths: yes
+      # Login to ECR
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 905418111557.dkr.ecr.ap-south-1.amazonaws.com
+      # Push Docker image to ECR
+      - docker push 905418111557.dkr.ecr.ap-south-1.amazonaws.com/todo-list
