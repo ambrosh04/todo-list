@@ -6,8 +6,7 @@ pipeline {
         ECR_REPOSITORY = 'public.ecr.aws/l6s9i6b7/todo-list'
         IMAGE_TAG = 'latest'
         CLUSTER_NAME = 'todo-list'
-        TASK_FAMILY = 'todo-list-task'
-        SERVICE_NAME = 'todo-list-service'
+        SERVICE_NAME = 'todo-list' 
         CONTAINER_NAME = 'todo-list'
     }
     stages {
@@ -29,37 +28,12 @@ pipeline {
                 }
             }
         }
-        stage('Register Task Definition') {
-            steps {
-                echo "Registering ECS Task Definition..."
-                script {
-                    sh '''
-                    aws ecs register-task-definition --family $TASK_FAMILY \
-                    --network-mode bridge \
-                    --container-definitions '[
-                        {
-                            "name": "$CONTAINER_NAME",
-                            "image": "$ECR_REPOSITORY:$IMAGE_TAG",
-                            "cpu": 256,
-                            "memory": 512,
-                            "portMappings": [
-                                {
-                                    "containerPort": 8000,
-                                    "hostPort": 8000
-                                }
-                            ],
-                            "essential": true
-                        }
-                    ]'
-                    '''
-                }
-            }
-        }
         stage('Deploy to ECS') {
             steps {
                 echo "Deploying Docker image to Amazon ECS..."
                 script {
                     sh '''
+                    # Update the ECS service to use the new image
                     aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
                     '''
                 }
