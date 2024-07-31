@@ -9,6 +9,7 @@ pipeline {
         DEPLOYMENT_NAME = 'django-todo-list' // Kubernetes deployment name
         SERVICE_NAME = 'django-todo-list-service' // Kubernetes service name
         KUBECONFIG_CREDENTIALS = 'kubeconfig-credentials-id' // Jenkins credentials ID for kubeconfig
+        AWS_CREDENTIALS = 'kubeconfig-credentials-id' // Jenkins AWS credentials ID
     }
     stages {
         stage('Build') {
