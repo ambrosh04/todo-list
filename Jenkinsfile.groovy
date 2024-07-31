@@ -8,6 +8,7 @@ pipeline {
         CLUSTER_NAME = 'my-cluster'
         SERVICE_NAME = 'my-service'
         CONTAINER_NAME = 'my-container'
+        KUBECONFIG = '/home/ubuntu/.kube'
     }
     stages {
         stage('Build') {
@@ -32,12 +33,13 @@ pipeline {
             steps {
                 echo "Deploying Docker image to Amazon EKS..."
                 script {
-                    withKubeConfig([credentialsId: 'your-kubeconfig-credentials-id']) {
-                        sh '''
-                        kubectl set image deployment/$SERVICE_NAME $CONTAINER_NAME=$ECR_REPOSITORY:$IMAGE_TAG
-                        kubectl rollout status deployment/$SERVICE_NAME
-                        '''
-                    }
+                    // Ensure kubeconfig is available
+                    sh '''
+                    export KUBECONFIG=$KUBECONFIG
+                    kubectl config view
+                    kubectl set image deployment/$SERVICE_NAME $CONTAINER_NAME=$ECR_REPOSITORY:$IMAGE_TAG
+                    kubectl rollout status deployment/$SERVICE_NAME
+                    '''
                 }
             }
         }
