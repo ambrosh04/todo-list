@@ -5,9 +5,10 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_REPOSITORY = 'public.ecr.aws/l6s9i6b7/todo-list'
         IMAGE_TAG = 'latest'
-      #  CLUSTER_NAME = 'todo-list'
-       # SERVICE_NAME = 'todo-list' 
-        #CONTAINER_NAME = 'todo-list'
+        CLUSTER_NAME = 'my-cluster' // Replace with your EKS cluster name
+        DEPLOYMENT_NAME = 'django-todo-list' // Kubernetes deployment name
+        SERVICE_NAME = 'django-todo-list-service' // Kubernetes service name
+        KUBECONFIG_CREDENTIALS = 'kubeconfig-credentials-id' // Jenkins credentials ID for kubeconfig
     }
     stages {
         stage('Build') {
@@ -28,16 +29,18 @@ pipeline {
                 }
             }
         }
-        #stage('Deploy to ECS') {
-         #   steps {
-          #      echo "Deploying Docker image to Amazon ECS..."
-           #     script {
-            #        sh '''
-                    # Update the ECS service to use the new image
-             #       aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment
-                    '''
-              #  }
-            #}
-        #}
+        stage('Deploy to EKS') {
+            steps {
+                echo "Deploying Docker image to Amazon EKS..."
+                script {
+                    withKubeConfig(credentialsId: 'kubeconfig-credentials-id') {
+                        sh '''
+                        kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$ECR_REPOSITORY:$IMAGE_TAG
+                        kubectl rollout status deployment/$DEPLOYMENT_NAME
+                        '''
+                    }
+                }
+            }
+        }
     }
 }
