@@ -6,8 +6,8 @@ pipeline {
         ECR_REPOSITORY = 'public.ecr.aws/l6s9i6b7/todo-list'
         IMAGE_TAG = 'latest'
         CLUSTER_NAME = 'my-cluster'
-        SERVICE_NAME = 'todo-list-service'
-        CONTAINER_NAME = 'todo-list-container'
+        SERVICE_NAME = 'my-service'
+        CONTAINER_NAME = 'my-container'
         KUBECONFIG = '/home/ubuntu/.kube/config'
     }
     stages {
@@ -33,11 +33,20 @@ pipeline {
             steps {
                 echo "Deploying Docker image to Amazon EKS..."
                 script {
+                    // Ensure kubeconfig is available
                     sh '''
                     export KUBECONFIG=$KUBECONFIG
                     kubectl config view
-                    kubectl set image deployment/todo-list-deployment todo-list-container=$ECR_REPOSITORY:$IMAGE_TAG
-                    kubectl rollout status deployment/todo-list-deployment
+
+                    # Apply deployment and service YAML files
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+
+                    # Update the image in the deployment
+                    kubectl set image deployment/$SERVICE_NAME $CONTAINER_NAME=$ECR_REPOSITORY:$IMAGE_TAG
+
+                    # Check the rollout status
+                    kubectl rollout status deployment/$SERVICE_NAME
                     '''
                 }
             }
