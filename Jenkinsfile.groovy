@@ -9,6 +9,7 @@ pipeline {
         SERVICE_NAME = 'my-service'
         CONTAINER_NAME = 'my-container'
         KUBECONFIG = '/home/ubuntu/.kube/config'
+        AWS_CREDENTIALS = 'aws-credentials-id'
     }
     stages {
         stage('Build') {
