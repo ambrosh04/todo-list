@@ -6,7 +6,7 @@ pipeline {
         ECR_REPOSITORY = 'public.ecr.aws/l6s9i6b7/todo-list'
         IMAGE_TAG = 'latest'
         CLUSTER_NAME = 'my-cluster'
-        SERVICE_NAME = 'my-service'
+        SERVICE_NAME = 'todo-list-deployment'
         CONTAINER_NAME = 'my-container'
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         AWS_CREDENTIALS = 'aws-credentials-id'
