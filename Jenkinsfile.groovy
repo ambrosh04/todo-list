@@ -8,7 +8,7 @@ pipeline {
         CLUSTER_NAME = 'my-cluster'
         SERVICE_NAME = 'my-service'
         CONTAINER_NAME = 'my-container'
-        KUBECONFIG = '/home/ubuntu/.kube/config'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
         AWS_CREDENTIALS = 'aws-credentials-id'
     }
     stages {
