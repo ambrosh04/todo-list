@@ -7,7 +7,7 @@ pipeline {
         IMAGE_TAG = 'latest'
         CLUSTER_NAME = 'my-cluster'
         SERVICE_NAME = 'todo-list-deployment'
-        CONTAINER_NAME = 'my-container'
+        CONTAINER_NAME = 'todo-list-container'
         KUBECONFIG = '/var/lib/jenkins/.kube/config'
         AWS_CREDENTIALS = 'aws-credentials-id'
     }
