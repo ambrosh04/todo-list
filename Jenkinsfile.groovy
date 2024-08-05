@@ -40,8 +40,8 @@ pipeline {
                     kubectl config view
 
                     # Apply deployment and service YAML files
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f deployment.yaml
+                    kubectl apply -f service.yaml
 
                     # Update the image in the deployment
                     kubectl set image deployment/$SERVICE_NAME $CONTAINER_NAME=$ECR_REPOSITORY:$IMAGE_TAG
