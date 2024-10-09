@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        AWS_CREDENTIALS_ID = 'todo-list' // Set your AWS credentials ID from Jenkins
+        AWS_CREDENTIALS_ID = 'aws-config' // Set your AWS credentials ID from Jenkins
         ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list' // Your ECR registry URL
         ECR_REPO = 'todo-list' // Your ECR repository name
         IMAGE_TAG = "latest"
