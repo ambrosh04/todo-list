@@ -6,7 +6,7 @@ pipeline {
         ECR_REPO = 'todo-list' // Your ECR repository name
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
-        PEM_CREDENTIALS_ID = 'Atriina-practice' // ID of the secret text holding the PEM file
+        PEM_CREDENTIALS_ID = 'secret-key' // ID of the secret text holding the PEM file
         EC2_USER = 'ubuntu'
         EC2_HOST = '54.160.167.184' // Replace with your EC2 server's public IP
     }
