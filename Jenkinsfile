@@ -6,6 +6,9 @@ pipeline {
         ECR_REPO = 'todo-list' // Your ECR repository name
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
+        PEM_CREDENTIALS_ID = 'Atriina-practice' // ID of the secret text holding the PEM file
+        EC2_USER = 'ubuntu'
+        EC2_HOST = '54.160.167.184' // Replace with your EC2 server's public IP
     }
     stages {
         stage('Clone Repository') {
@@ -16,36 +19,48 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}")
+                    dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
                 }
             }
         }
         stage('Login to Amazon ECR') {
             steps {
-                script {
+                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
-                    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/z4y3q1f9
+                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                    '''
                 }
             }
         }
         stage('Push Docker Image to ECR') {
             steps {
                 script {
-                    dockerImage.push()
+                    dockerImage.push("${IMAGE_TAG}")
                 }
             }
         }
-        stage('Update Deployment YAML') {
+        stage('Deploy to EC2') {
             steps {
-                script {
-                    sh '''
-                    sed -i 's|image: .*|image: public.ecr.aws/z4y3q1f9/todo-list:latest|' k8s/deployment.yaml
-                    git add k8s/deployment.yaml
-                    git commit -m "Updated deployment image"
-                    git push origin main
-                    '''
+                withCredentials([file(credentialsId: PEM_CREDENTIALS_ID, variable: 'PEM_FILE')]) {
+                    script {
+                        sh """
+                        ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                        docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
+                        docker stop todo-list || true
+                        docker rm todo-list || true
+                        docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
+                        EOF
+                        """
+                    }
                 }
             }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
