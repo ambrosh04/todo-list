@@ -25,13 +25,7 @@ pipeline {
                     // Build a new Docker image
                     dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
                     
-                    // Remove any existing local image
-                    sh """
-                    if docker images -q ${ECR_REGISTRY}:${IMAGE_TAG}; then
-                        echo "Removing previous image..."
-                        docker rmi -f ${ECR_REGISTRY}:${IMAGE_TAG} || true
-                    fi
-                    """
+
                 }
             }
         }
