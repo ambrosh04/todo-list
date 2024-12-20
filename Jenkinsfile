@@ -12,7 +12,6 @@ pipeline {
         PEM_CREDENTIALS_ID = 'secret-key' // ID of the secret text holding the PEM file
         EC2_USER = 'ubuntu'
         EC2_HOST = '54.90.208.154'
-       
     }
     stages {
         stage('Clone Repository') {
@@ -48,18 +47,19 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([file(credentialsId: PEM_CREDENTIALS_ID, variable: 'PEM_FILE')]) {
-            script {
-                sh """
-                ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST}
-                set -e
-                docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
-                if docker ps | grep -q todo-list; then
+                    script {
+                        sh """
+                        ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+                        set -e
+                        docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
+                        if docker ps | grep -q todo-list; then
                             docker stop todo-list
                             docker rm todo-list
                         fi
-                         docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
-                 """
-            }
+                        docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
+                        EOF
+                        """
+                    }
                 }
             }
         }
