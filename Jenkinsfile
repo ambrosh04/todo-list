@@ -6,7 +6,6 @@ pipeline {
     environment {
         AWS_CREDENTIALS_ID = 'aws-config' // Set your AWS credentials ID from Jenkins
         ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list' // Your ECR registry URL
-        ECR_REPO = 'todo-list' // Your ECR repository name
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
         PEM_CREDENTIALS_ID = 'secret-key' // ID of the secret text holding the PEM file
@@ -56,9 +55,9 @@ pipeline {
                         echo "Checking for existing container todo-list..."
                         if docker ps -a | grep -q todo-list; then
                             echo "Stopping old container todo-list..."
-                            docker stop todo-list
+                            docker stop todo-list || true
                             echo "Removing old container todo-list..."
-                            docker rm todo-list
+                            docker rm todo-list || true
                         else
                             echo "No existing container found."
                         fi
