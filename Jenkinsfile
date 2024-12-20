@@ -53,9 +53,11 @@ pipeline {
                 ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST}
                 set -e
                 docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
-                docker stop todo-list
-                docker rm todo-list
-                docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
+                if docker ps | grep -q todo-list; then
+                            docker stop todo-list
+                            docker rm todo-list
+                        fi
+                         docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
                  """
             }
                 }
