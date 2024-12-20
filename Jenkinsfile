@@ -11,7 +11,7 @@ pipeline {
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
         PEM_CREDENTIALS_ID = 'secret-key' // ID of the secret text holding the PEM file
         EC2_USER = 'ubuntu'
-        EC2_HOST = '54.90.208.154' // Replace with your EC2 server's public IP
+       
     }
     stages {
         stage('Clone Repository') {
