@@ -17,9 +17,9 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: PEM_CREDENTIALS_ID, variable: 'PEM_FILE')]) {
                     sh """
-                    ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+                    ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 
                     echo "Logged into deployment server ${EC2_HOST}"
-                    EOF
+                    
                     """
                 }
             }
@@ -57,7 +57,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: PEM_CREDENTIALS_ID, variable: 'PEM_FILE')]) {
                     sh """
-                    ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
+                    ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 
                     set -e
                     echo "Pulling Docker image ${ECR_REGISTRY}:${IMAGE_TAG}..."
                     docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
@@ -72,7 +72,7 @@ pipeline {
                     fi
                     echo "Starting new container..."
                     docker run -d -p 8000:8000 --name todo-list ${ECR_REGISTRY}:${IMAGE_TAG}
-                    EOF
+                    
                     """
                 }
             }
