@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        AWS_CREDENTIALS_ID = 'aws-config'
+        AWS_CREDENTIALS_ID = 'todo-list-AWS'
         ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list'
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
