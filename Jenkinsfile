@@ -10,6 +10,7 @@ pipeline {
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
         ECS_CLUSTER = 'todo-list' // ECS Cluster name
         ECS_SERVICE = 'todo-list-SVC' // ECS Service name
+        REGION = 'us-east-1' // AWS region
     }
     stages {
         stage('Clone Repository') {
@@ -29,26 +30,20 @@ pipeline {
             steps {
                 withAWS(credentials: AWS_CREDENTIALS_ID, region: "${REGION}") {
                     script {
-                        // Build Docker image
-                        dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
-                        // Authenticate and push Docker image to ECR
                         sh '''
                         aws ecr-public get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
                         docker push ${ECR_REGISTRY}:${IMAGE_TAG}
                         '''
                     }
+                }
             }
         }
         stage('Update ECS Service') {
             steps {
-                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withAWS(credentials: AWS_CREDENTIALS_ID, region: "${REGION}") {
                     script {
-                        // Update the ECS service with the latest Docker image
+                        // Update ECS service with the latest Docker image
                         sh '''
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-
-                        echo "Updating ECS service with latest image..."
                         aws ecs update-service \
                             --cluster ${ECS_CLUSTER} \
                             --service ${ECS_SERVICE} \
