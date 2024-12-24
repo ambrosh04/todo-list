@@ -1,17 +1,13 @@
 pipeline {
     agent any
-    tools {
-        git 'DefaultGit' // Specify the Git tool configured in Jenkins Global Tool Configuration
-    }
     environment {
-        AWS_CREDENTIALS_ID = 'aws-config' // Set your AWS credentials ID from Jenkins
-        ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list' // Your ECR registry URL
+        AWS_CREDENTIALS_ID = 'aws-config'
+        ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list'
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
-        PEM_CREDENTIALS_ID = 'secret-key' // ID of the secret text holding the PEM file
-        EC2_USER = 'ubuntu'
-        EC2_HOST = '54.90.208.154' // Deployment server IP
-        APP_NAME = "todo-list"
+        ECS_CLUSTER = 'todo-list'
+        ECS_SERVICE = 'todo-list-SVC'
+        TASK_DEFINITION = 'todo-list-TD'
     }
     stages {
         stage('Clone Repository') {
@@ -19,18 +15,11 @@ pipeline {
                 git branch: 'develop', url: "${REPO_URL}"
             }
         }
-        stage('Build Docker Image') {
+        stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // Build a new Docker image
                     dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
-                    
-
                 }
-            }
-        }
-        stage('Push Docker Image to ECR') {
-            steps {
                 withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
@@ -41,29 +30,43 @@ pipeline {
                 }
             }
         }
-        stage('Deploy Application') {
+        stage('Update ECS Service') {
             steps {
-                withCredentials([file(credentialsId: PEM_CREDENTIALS_ID, variable: 'PEM_FILE')]) {
-                    sh """
-                    ssh -i $PEM_FILE -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "
-                    set -e
-                    echo 'Pulling Docker image...'
-                    docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
-                    echo 'Checking for existing container ${APP_NAME}...'
-                    if docker ps -a | grep -q ${APP_NAME}; then
-                        echo 'Stopping and removing old container...'
-                        docker stop ${APP_NAME} || true
-                        docker rm ${APP_NAME} || true
-                    fi
-                    echo 'Checking for existing image...'
-                    if docker images -q ${ECR_REGISTRY}:${IMAGE_TAG}; then
-                        echo 'Removing old image...'
-                        docker rmi -f ${ECR_REGISTRY}:${IMAGE_TAG} || true
-                    fi
-                    echo 'Starting new container...'
-                    docker run -d -p 8000:8000 --name ${APP_NAME} ${ECR_REGISTRY}:${IMAGE_TAG}
-                    "
-                    """
+                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+
+                        NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+                            --family ${TASK_DEFINITION} \
+                            --network-mode bridge \
+                            --container-definitions '[
+                                {
+                                    "name": "todo-container",
+                                    "image": "${ECR_REGISTRY}:${IMAGE_TAG}",
+                                    "memory": 512,
+                                    "cpu": 256,
+                                    "essential": true,
+                                    "portMappings": [
+                                        {
+                                            "containerPort": 8000,
+                                            "hostPort": 8000,
+                                            "protocol": "tcp"
+                                        }
+                                    ]
+                                }
+                            ]' \
+                            --requires-compatibilities "EC2" \
+                            --query 'taskDefinition.taskDefinitionArn' --output text)
+
+                        aws ecs update-service \
+                            --cluster ${ECS_CLUSTER} \
+                            --service ${ECS_SERVICE} \
+                            --task-definition $NEW_TASK_DEF_ARN \
+                            --desired-count 1
+                        '''
+                    }
                 }
             }
         }
