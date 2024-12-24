@@ -1,13 +1,14 @@
 pipeline {
     agent any
     environment {
-        AWS_CREDENTIALS_ID = 'todo-list-AWS'
-        ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list'
+        AWS_CREDENTIALS_ID = 'todo-list-AWS' // Your AWS Credentials ID in Jenkins
+        ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list' // ECR registry URL
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
-        ECS_CLUSTER = 'todo-list'
-        ECS_SERVICE = 'todo-list-SVC'
-        TASK_DEFINITION = 'todo-list-TD'
+        ECS_CLUSTER = 'todo-list' // ECS Cluster name
+        ECS_SERVICE = 'todo-list-SVC' // ECS Service name
+        TASK_DEFINITION = 'todo-list-TD' // ECS Task Definition name
+        REGION = 'us-east-1' // AWS Region
     }
     stages {
         stage('Clone Repository') {
@@ -17,27 +18,27 @@ pipeline {
         }
         stage('Build and Push Docker Image') {
             steps {
-                script {
-                    dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
-                }
-                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh '''
-                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                    docker push ${ECR_REGISTRY}:${IMAGE_TAG}
-                    '''
+                withAWS(credentials: AWS_CREDENTIALS_ID, region: "${REGION}") {
+                    script {
+                        // Build Docker image
+                        dockerImage = docker.build("${ECR_REGISTRY}:${IMAGE_TAG}")
+
+                        // Authenticate and push Docker image to ECR
+                        sh '''
+                        aws ecr-public get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        docker push ${ECR_REGISTRY}:${IMAGE_TAG}
+                        '''
+                    }
                 }
             }
         }
         stage('Update ECS Service') {
             steps {
-                withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withAWS(credentials: AWS_CREDENTIALS_ID, region: "${REGION}") {
                     script {
+                        // Register a new task definition and update ECS service
                         sh '''
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-
+                        echo "Registering new task definition..."
                         NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
                             --family ${TASK_DEFINITION} \
                             --network-mode bridge \
@@ -60,6 +61,7 @@ pipeline {
                             --requires-compatibilities "EC2" \
                             --query 'taskDefinition.taskDefinitionArn' --output text)
 
+                        echo "Updating ECS service..."
                         aws ecs update-service \
                             --cluster ${ECS_CLUSTER} \
                             --service ${ECS_SERVICE} \
