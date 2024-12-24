@@ -4,7 +4,7 @@ pipeline {
         git 'Default' // Specify the Git tool configured in Jenkins Global Tool Configuration
     }
     environment {
-        AWS_CREDENTIALS_ID = 'aws-config' // Set your AWS credentials ID from Jenkins
+        AWS_CREDENTIALS_ID = 'todo-list-AWS' // Set your AWS credentials ID from Jenkins
         ECR_REGISTRY = 'public.ecr.aws/z4y3q1f9/todo-list' // Your ECR registry URL
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/ambrosh04/todo-list.git'
