@@ -44,7 +44,7 @@ pipeline {
                             --network-mode bridge \
                             --container-definitions '[
                                 {
-                                    "name": "todo-container",
+                                    "name": "todo-list",
                                     "image": "${ECR_REGISTRY}:${IMAGE_TAG}",
                                     "memory": 512,
                                     "cpu": 256,
