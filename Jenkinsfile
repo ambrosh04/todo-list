@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        git 'DefaultGit' // Specify the Git tool configured in Jenkins Global Tool Configuration
+        git 'Default' // Specify the Git tool configured in Jenkins Global Tool Configuration
     }
     environment {
         AWS_CREDENTIALS_ID = 'aws-config' // Set your AWS credentials ID from Jenkins
