@@ -41,7 +41,7 @@ pipeline {
                         echo "Registering new task definition..."
                         NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
                             --family ${TASK_DEFINITION} \
-                            --network-mode bridge \
+                            --network-mode awsvpc \
                             --container-definitions '[
                                 {
                                     "name": "todo-list",
