@@ -28,12 +28,10 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ambrosh-todo-list
-        IMAGE_TAG: LATEST
-        ACTIONS_STEP_DEBUG: true
-
+        IMAGE_TAG: ambrosh
       run: |
         # Build the Docker image
-        docker build -t ambrosh-todo-list .
-        docker tag ambrosh-todo-list:latest public.ecr.aws/z4y3q1f9/ambrosh-todo-list:latest
-        # Push the Docker image to Amazon ECR
-        docker push public.ecr.aws/z4y3q1f9/ambrosh-todo-list:latest
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+        # Push the Docker image to ECR
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
