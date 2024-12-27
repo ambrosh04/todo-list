@@ -29,6 +29,8 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ambrosh-todo-list
         IMAGE_TAG: LATEST
+        ACTIONS_STEP_DEBUG: true
+
       run: |
         # Build the Docker image
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
