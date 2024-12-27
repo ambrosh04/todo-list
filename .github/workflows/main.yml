@@ -33,6 +33,6 @@ jobs:
 
       run: |
         # Build the Docker image
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t ambrosh-todo-list .
         # Push the Docker image to Amazon ECR
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push public.ecr.aws/z4y3q1f9/ambrosh-todo-list:latest
