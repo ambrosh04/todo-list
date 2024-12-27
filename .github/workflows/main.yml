@@ -36,5 +36,4 @@ jobs:
         IMAGE_TAG: nodejs_demo_image
       run: |
         docker build -t todo-list .
-        docker tag todo-list:latest public.ecr.aws/z4y3q1f9/todo-list:latest
         docker push public.ecr.aws/z4y3q1f9/todo-list:latest
