@@ -1,12 +1,12 @@
-name: Deploy to ECR
+name: Deploy to ECS
 
 on:
   push:
     branches: [develop]
 
 jobs:
-  build:
-    name: Build Image
+  build-and-deploy:
+    name: Build, Push, and Deploy to ECS
     runs-on: ubuntu-latest
 
     steps:
@@ -30,8 +30,25 @@ jobs:
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: todo-list 
+        ECR_REPOSITORY: todo-list
         IMAGE_TAG: latest
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Register new ECS task definition
+      id: register-task
+      uses: aws-actions/amazon-ecs-register-task-definition@v1
+      with:
+        family: todo-list-TD
+        container-name: todo-list-container
+        container-image: ${{ steps.login-ecr.outputs.registry }}/todo-list:latest
+        aws-region: us-east-1
+
+    - name: Deploy to Amazon ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        service: todo-list-SVC
+        cluster: todo-list-cluster
+        task-definition: ${{ steps.register-task.outputs.task-definition }}
+        aws-region: us-east-1
